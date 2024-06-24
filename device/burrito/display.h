@@ -15,7 +15,7 @@ void lcd_setup(LiquidCrystal_I2C* lcd);
 
 void display_booting_up(LiquidCrystal_I2C* lcd, unsigned short step = 0);
 
-void display_header(LiquidCrystal_I2C* lcd, int row = 0);
+void display_header(LiquidCrystal_I2C* lcd, const struct app_state* state, int row = 0);
 
 void display_burrito_pos(
   LiquidCrystal_I2C* lcd,

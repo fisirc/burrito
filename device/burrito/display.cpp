@@ -10,9 +10,16 @@ void display_booting_up(LiquidCrystal_I2C* lcd, unsigned short step) {
   lcd->print("Booting up");
 }
 
-void display_header(LiquidCrystal_I2C* lcd, int row) {
+void display_header(LiquidCrystal_I2C* lcd, const struct app_state* state, int row) {
   lcd->setCursor(0, row);
   lcd->print(APP_TITLE);
+  lcd->setCursor(LCD_COLUMNS - 1, row);
+  if (state->wifi_connected) {
+    lcd->print(CHAR_WIFI);
+  }
+  else {
+    lcd->print(" ");
+  }
 }
 
 void display_burrito_pos(LiquidCrystal_I2C* lcd, float lat, float lng, int row) {
@@ -61,7 +68,7 @@ void display_weather(LiquidCrystal_I2C* lcd, float temp, float humidity, int row
 
 /* 🔠 Custom characters data */
 
-uint8_t custom_char_burrito1[8] = {
+static uint8_t custom_char_burrito1[8] = {
   0b00000,
   0b00000,
   0b11111,
@@ -71,7 +78,7 @@ uint8_t custom_char_burrito1[8] = {
   0b01000,
   0b00000,
 };
-uint8_t custom_char_burrito2[8] = {
+static uint8_t custom_char_burrito2[8] = {
   0b00000,
   0b00000,
   0b11111,
@@ -81,7 +88,7 @@ uint8_t custom_char_burrito2[8] = {
   0b00010,
   0b00000,
 };
-uint8_t custom_char_temperature[8] = {
+static uint8_t custom_char_temperature[8] = {
   0b00100,
   0b01010,
   0b01010,
@@ -91,7 +98,7 @@ uint8_t custom_char_temperature[8] = {
   0b10001,
   0b01110,
 };
-uint8_t custom_char_raindrop[8] = {
+static uint8_t custom_char_raindrop[8] = {
   0b00100,
   0b01110,
   0b01110,
@@ -101,15 +108,15 @@ uint8_t custom_char_raindrop[8] = {
   0b11111,
   0b01110,
 };
-uint8_t custom_char_wifi[8] = {
-  0b00000,
+static uint8_t custom_char_wifi[8] = {
   0b00000,
   0b01110,
   0b10001,
   0b00100,
-  0b01110,
+  0b01010,
   0b00000,
   0b00100,
+  0b00000,
 };
 
 void lcd_setup(LiquidCrystal_I2C* lcd) {

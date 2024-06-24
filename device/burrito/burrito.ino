@@ -62,7 +62,7 @@ void loop() {
     state.humidity = INVALID_HUMIDITY;
   }
 
-  display_header(&lcd);
+  display_header(&lcd, &state);
   display_burrito_pos(&lcd, state.lat, state.lng);
   display_weather(&lcd, state.temp, state.humidity);
   if (state.wifi_connected) {
