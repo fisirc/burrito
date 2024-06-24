@@ -1,6 +1,14 @@
+#include <WiFi.h>
+#include <HTTPClient.h>
 #include <DHT.h>
 #include <TinyGPS++.h>
 #include <LiquidCrystal_I2C.h>
+
+#define APP_TITLE "Burrito!"
+String var_wifi_ssid        = "WIFI_SSID";
+String var_wifi_password    = "WIFI_PASS";
+String var_burrito_endpoint = "https://burrito-server.shuttleapp.rs";
+String var_burrito_post     = "/give-position";
 
 #define LED_PORT 2
 
@@ -20,6 +28,17 @@ DHT dht22(DHT22_PORT, DHT22);
 #define GPS_SERIAL Serial2
 #define DEBUG_GPS_NMEA false
 TinyGPSPlus gps;
+
+bool setup_wifi() {
+
+}
+
+struct state {
+  float lat;
+  float lng;
+  float temp;
+  float humidity;
+};
 
 /* 🚌 Burrito setup code */
 
@@ -45,8 +64,9 @@ float temp, humidity;
 float lat = LOADING_COORD, lng = LOADING_COORD;
 
 // Pre declarations
+void display_header(int row = 0);
 void display_weather(float temp = INVALID_WEATHER, float humidity = INVALID_HUMIDITY, int row = 3);
-void display_burrito_pos(float lat = INVALID_COORD, float lng = INVALID_COORD, int row = 1);
+void display_burrito_pos(float lat = INVALID_COORD, float lng = INVALID_COORD, int row = 2);
 
 void loop() {
   bool gps_ready = gps_delay(1000);
@@ -70,6 +90,7 @@ void loop() {
     humidity = INVALID_HUMIDITY;
   }
 
+  display_header();
   display_burrito_pos(lat, lng);
   display_weather(temp, humidity);
   delay(500);
@@ -101,11 +122,32 @@ bool gps_delay(unsigned long ms) {
   return false;
 }
 
+// Sends the data to the burrito
+bool send_data_to_server(struct state payload) {
+  HTTPClient http;
+  http.begin(var_burrito_endpoint + var_burrito_post);
+  http.addHeader("content-type", "application/json");
+  int code = http.POST(
+    String("{\"latitud\":\"") + String(payload.lat) +
+    String("\",\"longitud\":\"") + String(payload.lng) + "\"}"
+  );
+  if (code < 0) {
+    Serial.printf("[HTTP] POST error: %s\n", http.errorToString(code).c_str());
+    return false;
+  }
+  if (code != HTTP_CODE_OK) {
+    Serial.printf("[HTTP] POST error: code %d\n", code);
+    return false;
+  }
+  return true;
+}
+
 /* Display related functions and custom char definitions */
 #define CHAR_BURRITO1 "\x01"
 #define CHAR_BURRITO2 "\x02"
 #define CHAR_TEMP     "\x03"
 #define CHAR_RAINDROP "\x04"
+#define CHAR_WIFI     "\x05"
 
 uint8_t custom_char_burrito1[8] = {
   0b00000,
@@ -147,6 +189,16 @@ uint8_t custom_char_raindrop[8] = {
   0b11111,
   0b01110,
 };
+uint8_t custom_char_wifi[8] = {
+  0b00000,
+  0b00000,
+  0b01110,
+  0b10001,
+  0b00100,
+  0b01110,
+  0b00000,
+  0b00100,
+};
 
 void lcd_setup() {
   lcd.init();
@@ -155,6 +207,12 @@ void lcd_setup() {
   lcd.createChar(0x02, custom_char_burrito2);
   lcd.createChar(0x03, custom_char_temperature);
   lcd.createChar(0x04, custom_char_raindrop);
+  lcd.createChar(0x05, custom_char_wifi);
+}
+
+void display_header(int row) {
+  lcd.setCursor(0, row);
+  lcd.print(APP_TITLE);
 }
 
 void display_burrito_pos(float lat, float lng, int row) {
