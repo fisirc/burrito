@@ -10,6 +10,7 @@
 #define CHAR_TEMP     "\x03"
 #define CHAR_RAINDROP "\x04"
 #define CHAR_WIFI     "\x05"
+#define CHAR_NO_WIFI  "\x06"
 
 void lcd_setup(LiquidCrystal_I2C* lcd);
 

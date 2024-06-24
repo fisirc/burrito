@@ -18,7 +18,7 @@ void display_header(LiquidCrystal_I2C* lcd, const struct app_state* state, int r
     lcd->print(CHAR_WIFI);
   }
   else {
-    lcd->print(" ");
+    lcd->print(CHAR_NO_WIFI);
   }
 }
 
@@ -118,6 +118,16 @@ static uint8_t custom_char_wifi[8] = {
   0b00100,
   0b00000,
 };
+static uint8_t custom_char_no_wifi[8] = {
+  0b00000,
+  0b01101,
+  0b10010,
+  0b00100,
+  0b01010,
+  0b10000,
+  0b00100,
+  0b00000,
+};
 
 void lcd_setup(LiquidCrystal_I2C* lcd) {
   lcd->init();
@@ -127,4 +137,5 @@ void lcd_setup(LiquidCrystal_I2C* lcd) {
   lcd->createChar(0x03, custom_char_temperature);
   lcd->createChar(0x04, custom_char_raindrop);
   lcd->createChar(0x05, custom_char_wifi);
+  lcd->createChar(0x06, custom_char_no_wifi);
 }
