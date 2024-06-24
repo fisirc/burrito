@@ -1,5 +1,13 @@
 #pragma once
 
+struct app_state {
+  float lat;
+  float lng;
+  float temp;
+  float humidity;
+  bool wifi_connected;
+};
+
 #define APP_TITLE "Burrito!"
 
 #define LOOP_DELAY 500
