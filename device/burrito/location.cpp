@@ -15,6 +15,6 @@ bool gps_delay(TinyGPSPlus* gps, unsigned long ms) {
         return true;
       }
     }
-  } while (DEBUG_GPS_NMEA || millis() - start < ms);
+  } while (millis() - start < ms);
   return false;
 }

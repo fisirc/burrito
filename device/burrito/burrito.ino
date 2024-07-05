@@ -45,6 +45,12 @@ void loop() {
 
   state.temp = dht22.readTemperature();
   state.humidity = dht22.readHumidity();
+  if (isnan(state.temp)) {
+    state.temp = INVALID_TEMPERATURE;
+  }
+  if (isnan(state.humidity)) {
+    state.humidity = INVALID_HUMIDITY;
+  }
 
   if (gps_ready && gps.location.isValid()) {
     state.lat = gps.location.lat();
@@ -53,13 +59,6 @@ void loop() {
   else if (state.lat != LOADING_COORD) {
     state.lat = INVALID_COORD;
     state.lng = INVALID_COORD;
-  }
-
-  if (isnan(state.temp)) {
-    state.temp = INVALID_TEMPERATURE;
-  }
-  if (isnan(state.humidity)) {
-    state.humidity = INVALID_HUMIDITY;
   }
 
   display_header(&lcd, &state);
