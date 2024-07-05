@@ -9,15 +9,20 @@ bool wifi_is_connected() {
 
 // Sends the data to the burrito
 bool send_data_to_server(const struct app_state* payload, String endpoint) {
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("[HTTP] WiFi not connected");
+    return false;
+  }
   if (payload->lat == INVALID_COORD || payload->lat == LOADING_COORD) {
     return false;
   }
 
   HTTPClient http;
   http.begin(endpoint);
+  http.setTimeout(5000);
   http.addHeader("content-type", "application/json");
   http.addHeader("accept", "*/*");
-  http.addHeader("user-agent", "burrito-tracker");
+  http.addHeader("user-agent", "burrito-001");
   int code = http.POST(
     String("{\"latitud\":\"") + String(payload->lat, 6) +
     String("\",\"longitud\":\"") + String(payload->lng, 6) + "\"}"
