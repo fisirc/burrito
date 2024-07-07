@@ -6,6 +6,7 @@ use rocket::{Route, State};
 
 use crate::PositionState;
 use crate::Message;
+use crate::velocity::calculate_velocity;
 
 pub fn routes() -> Vec<Route> {
     routes![get_position, give_position, handle_options_request]
@@ -18,13 +19,9 @@ fn get_position(count: usize, state: &State<PositionState>) -> Result<Value, Sta
         return Err(Status::InternalServerError);
     }
     
-    let start = if messages.len() > count {
-        messages.len() - count
-    } else {
-        0
-    };
+    let n = std::cmp::min(count, messages.len());
 
-    let recent_messages: Vec<Message> = messages[start..].to_vec();
+    let recent_messages: Vec<Message> = messages.iter().rev().take(n).cloned().collect();
     Ok(json!({
         "positions": recent_messages,
     }))
@@ -35,6 +32,8 @@ fn give_position(message_json: Json<Message>, state: &State<PositionState>) -> S
     let mut messages = state.messages.lock().unwrap();
     let mut message = message_json.into_inner();
     message.timestamp = Some(SystemTime::now()); // Add the current timestamp
+    message.velocity = calculate_velocity(&messages);
+
     messages.push(message);
     if messages.len() > 100 {
         messages.remove(0); // Keep only the latest 100 positions

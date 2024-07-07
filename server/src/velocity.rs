@@ -10,7 +10,7 @@ pub fn routes() -> Vec<Route> {
     routes![get_velocity]
 }
 
-fn calculate_velocity(positions: &[Message]) -> f64 {
+pub fn calculate_velocity(positions: &[Message]) -> f64 {
     if positions.len() < 2 {
         return 0.0;
     }
@@ -18,7 +18,10 @@ fn calculate_velocity(positions: &[Message]) -> f64 {
     let mut total_distance = 0.0;
     let mut total_time = Duration::new(0, 0);
 
-    for i in 1..positions.len() {
+    // we only use the last 5 positions to calculate the velocity
+    let start = std::cmp::min(positions.len() - 5, 1);
+
+    for i in start..positions.len() {
         let pos1 = &positions[i - 1];
         let pos2 = &positions[i];
 

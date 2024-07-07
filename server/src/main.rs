@@ -36,6 +36,8 @@ pub struct Message {
     sts: i32,
     #[serde(skip_deserializing)]
     timestamp: Option<SystemTime>,
+    #[serde(skip_deserializing)]
+    velocity: f64,
 }
 
 #[derive(Default)]
