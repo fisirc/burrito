@@ -1,3 +1,4 @@
+use bus_stops::BusStopInfo;
 use rocket::fs::{FileServer, relative};
 use rocket::serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -13,6 +14,7 @@ use rocket_dyn_templates::Template;
 
 mod velocity;
 mod position;
+mod bus_stops;
 
 #[get("/")]
 fn index() -> &'static str {
@@ -41,14 +43,14 @@ pub struct Message {
 }
 
 #[derive(Default)]
-pub struct PositionState {
+pub struct BurritoState {
     messages: Mutex<Vec<Message>>,
+    last_stop: Mutex<Option<BusStopInfo>>,
 }
 
 #[get("/loaderio-d0a8891a0d5f032a78809dc8605c4530")]
 fn testing() -> String{
-    let string = "loaderio-d0a8891a0d5f032a78809dc8605c4530".to_string();
-    string
+    "loaderio-d0a8891a0d5f032a78809dc8605c4530".to_string()
 }
 
 // CORS thing
@@ -81,7 +83,7 @@ async fn main() -> shuttle_rocket::ShuttleRocket {
         .mount("/static", FileServer::from(relative!("static")))
         .attach(CORS)
         .attach(Template::fairing())
-        .manage(PositionState::default());
+        .manage(BurritoState::default());
 
     Ok(rocket.into())
 }
@@ -97,5 +99,5 @@ fn rocket() -> _ {
     .mount("/static", FileServer::from(relative!("static")))
     .attach(CORS)
     .attach(Template::fairing())
-    .manage(PositionState::default())
+    .manage(BurritoState::default())
 }

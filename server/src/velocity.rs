@@ -4,7 +4,7 @@ use crate::Message;
 use rocket::State;
 use rocket::serde::json::{json, Value};
 
-use crate::PositionState;
+use crate::BurritoState;
 
 pub fn routes() -> Vec<Route> {
     routes![get_velocity]
@@ -19,7 +19,7 @@ pub fn calculate_velocity(positions: &[Message]) -> f64 {
     let mut total_time = Duration::new(0, 0);
 
     // we only use the last 5 positions to calculate the velocity
-    let start = std::cmp::max(positions.len().checked_sub(5).unwrap_or(0usize), 1);
+    let start = std::cmp::max(positions.len().saturating_sub(5), 1);
 
     for i in start..positions.len() {
         let pos1 = &positions[i - 1];
@@ -61,7 +61,7 @@ fn haversine(lat1: f64, lon1: f64, lat2: f64, lon2: f64) -> f64 {
 }
 
 #[get("/get-velocity")]
-fn get_velocity(state: &State<PositionState>) -> Result<Value, Status> {
+fn get_velocity(state: &State<BurritoState>) -> Result<Value, Status> {
     let messages = state.messages.lock().unwrap();
     if messages.is_empty() {
         return Err(Status::InternalServerError);

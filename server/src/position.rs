@@ -4,7 +4,8 @@ use rocket::http::Status;
 use rocket::serde::json::Json;
 use rocket::{Route, State};
 
-use crate::PositionState;
+use crate::bus_stops::{get_bus_stop_for_point, get_next_bus_stop};
+use crate::BurritoState;
 use crate::Message;
 use crate::velocity::calculate_velocity;
 
@@ -13,13 +14,21 @@ pub fn routes() -> Vec<Route> {
 }
 
 #[get("/get-position/<count>")]
-fn get_position(count: usize, state: &State<PositionState>) -> Result<Value, Status> {
+fn get_position(count: usize, state: &State<BurritoState>) -> Result<Value, Status> {
     let messages = state.messages.lock().unwrap();
-    if messages.is_empty() {
-        return Err(Status::InternalServerError);
-    }
+    let last_stop = state.last_stop.lock().unwrap();
 
     let n = std::cmp::min(count, messages.len());
+
+    let off_message = Message {
+        lt: 0.0,
+        lg: 0.0,
+        tmp: 0.0,
+        hum: 0.0,
+        sts: 4, // 4 means OFF
+        timestamp: Some(SystemTime::now()),
+        velocity: 0.0,
+    };
 
     match messages.last() {
         Some(last) => {
@@ -51,22 +60,56 @@ fn get_position(count: usize, state: &State<PositionState>) -> Result<Value, Sta
                 messages_cpy.push(off_message);
                 return Ok(json!({
                     "positions": messages_cpy.iter().rev().take(n).cloned().collect::<Vec<Message>>(),
+                    "last_stop": last_stop.clone(),
                 }));
             }
         },
-        None => {},
+        None => {
+            return Ok(json!({
+                "positions": vec![off_message],
+                "last_stop": last_stop.clone(),
+            }));
+        },
     }
 
     let recent_messages: Vec<Message> = messages.iter().rev().take(n).cloned().collect();
+
     Ok(json!({
         "positions": recent_messages,
+        "last_stop": last_stop.clone(),
     }))
 }
 
 #[post("/give-position", format = "json", data = "<message_json>")]
-fn give_position(message_json: Json<Message>, state: &State<PositionState>) -> Status {
+fn give_position(message_json: Json<Message>, state: &State<BurritoState>) -> Status {
     let mut messages = state.messages.lock().unwrap();
     let mut message = message_json.into_inner();
+
+    match get_bus_stop_for_point(message.lt, message.lg) {
+        Some(this_stop) => {
+            let mut last_stop = state.last_stop.lock().unwrap();
+            // If there's alreadya last_stop and:
+            // - it's the same, we don't update it
+            // - it's different, we update it
+            if let Some(last_stop) = last_stop.as_mut() {
+                if last_stop.number != this_stop.number {
+                    *last_stop = this_stop;
+                }
+            } else {
+                *last_stop = Some(this_stop);
+            }
+        },
+        None => {
+            // If the burrito is not in a bus stop and we have a last_stop, we interpret as
+            // it has left that bus stop, so we choose the next one as has_reached=false
+            let mut last_stop = state.last_stop.lock().unwrap();
+            if let Some(last_stop) = last_stop.as_mut() {
+                let next_stop = get_next_bus_stop(last_stop.number);
+                *last_stop = next_stop;
+            }
+        },
+    }
+
     message.timestamp = Some(SystemTime::now()); // Add the current timestamp
     message.velocity = calculate_velocity(&messages);
 
