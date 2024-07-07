@@ -12,6 +12,7 @@ struct app_state {
 };
 
 #define APP_TITLE "Burrito!"
+#define INSTANCE_ID "burrito-001"
 
 #define LOOP_DELAY 500
 #define LED_PORT 2

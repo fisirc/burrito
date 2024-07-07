@@ -19,7 +19,7 @@ bool send_data_to_server(const struct app_state* state, String endpoint) {
   http.setTimeout(6969);
   http.setConnectTimeout(6969);
   http.setReuse(false);
-  http.setUserAgent("burrito-001");
+  http.setUserAgent(INSTANCE_ID);
   http.addHeader("content-type", "application/json");
   http.addHeader("connection", "close");
 
