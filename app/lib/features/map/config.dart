@@ -1,5 +1,11 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+const initialPos = CameraPosition(
+  target: LatLng(-12.0554, -77.0843),
+  zoom: 15.8,
+  bearing: initialBearing,
+);
+
 // Defines the area where the UNMSM campus is located
 final unmsmSafeBounds = LatLngBounds(
   northeast: const LatLng(-12.046289722547598, -77.07152485225949),

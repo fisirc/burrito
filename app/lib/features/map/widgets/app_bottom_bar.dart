@@ -14,7 +14,7 @@ class BurritoBottomAppBar extends StatelessWidget {
       height: kBottomBarHeight,
       width: MediaQuery.of(context).size.width,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10),
+        padding: const EdgeInsets.only(right: 10, left: 8),
         color: Theme.of(context).colorScheme.primary,
         // color: Colors.transparent,
         child: Row(

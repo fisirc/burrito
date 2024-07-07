@@ -26,12 +26,6 @@ class BurritoMapState extends State<BurritoMap> {
   late GoogleMapController _controller;
   Position? userPos;
 
-  static const initialPos = CameraPosition(
-    target: LatLng(-12.0544, -77.0845),
-    zoom: 15.8,
-    bearing: initialBearing,
-  );
-
   LatLng? screenCenterLatLng;
   double mapRotation = 0;
 
@@ -148,17 +142,7 @@ class BurritoMapState extends State<BurritoMap> {
                   myLocationButtonEnabled: true,
                   mapToolbarEnabled: false,
                   style: mapStyleString,
-                  polygons: {
-                    kUNMSMPolygon,
-                    ...kUNMSMPlacesPolygons.map(
-                      (poly) => poly.copyWith(
-                        consumeTapEventsParam: true,
-                        onTapParam: () {
-                          print('Tapped on ${poly.polygonId}');
-                        },
-                      ),
-                    )
-                  },
+                  polygons: {kUNMSMPolygon, ...kUNMSMPlacesPolygons},
                   polylines: {kBurritoPathPolyLine},
                   markers: {
                     ...busStopsMarkers,
@@ -202,6 +186,19 @@ class BurritoMapState extends State<BurritoMap> {
                     ),
                   ),
                 ],
+                const Positioned(
+                  left: 10,
+                  bottom: kBottomBarHeight + 5,
+                  child: Text(
+                    // TODO: fetch last velocity
+                    '20 km/h',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
                 Positioned(
                   bottom: 0,
                   left: 0,

@@ -39,6 +39,7 @@ dependencies:
   geolocator: ^12.0.0
   collection: ^1.18.0
   dio: ^5.5.0+1
+  maps_toolkit: ^3.0.0
 
 dev_dependencies:
   flutter_test:

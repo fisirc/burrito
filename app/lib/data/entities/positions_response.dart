@@ -1,4 +1,5 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:maps_toolkit/maps_toolkit.dart' as maps_toolkit show LatLng;
 
 enum BurritoStatus {
   working,
@@ -95,4 +96,9 @@ extension XBurritoTimeInfo on DateTime {
       return '${diff.inHours} h';
     }
   }
+}
+
+extension XLatLng on LatLng {
+  maps_toolkit.LatLng get asTKLatLng =>
+      maps_toolkit.LatLng(latitude, longitude);
 }
