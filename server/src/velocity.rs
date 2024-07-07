@@ -19,7 +19,7 @@ pub fn calculate_velocity(positions: &[Message]) -> f64 {
     let mut total_time = Duration::new(0, 0);
 
     // we only use the last 5 positions to calculate the velocity
-    let start = std::cmp::min(positions.len() - 5, 1);
+    let start = std::cmp::max(positions.len().checked_sub(5).unwrap_or(0usize), 1);
 
     for i in start..positions.len() {
         let pos1 = &positions[i - 1];
