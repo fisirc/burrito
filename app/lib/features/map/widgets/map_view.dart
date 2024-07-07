@@ -1,15 +1,19 @@
 import 'dart:async';
-
+import 'dart:developer';
+import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:burrito/features/map/widgets/app_bottom_bar.dart';
+import 'package:burrito/data/entities/positions_response.dart';
+import 'package:burrito/features/map/widgets/app_top_bar.dart';
 import 'package:burrito/data/geojson/burrito_path.dart';
 import 'package:burrito/data/geojson/bus_stops.dart';
 import 'package:burrito/data/geojson/entrances.dart';
 import 'package:burrito/data/geojson/faculties.dart';
-import 'package:burrito/data/geojson/unmsm.dart';
+import 'package:burrito/data/markers/markers.dart';
 import 'package:burrito/features/map/config.dart';
-import 'package:burrito/services/location.dart';
-import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:burrito/services/dio_client.dart';
+import 'package:burrito/data/geojson/unmsm.dart';
 
 class BurritoMap extends StatefulWidget {
   const BurritoMap({super.key});
@@ -18,32 +22,29 @@ class BurritoMap extends StatefulWidget {
   State<BurritoMap> createState() => BurritoMapState();
 }
 
-class Vec2 {
-  double x;
-  double y;
-
-  Vec2(this.x, this.y);
-}
-
 class BurritoMapState extends State<BurritoMap> {
   late GoogleMapController _controller;
   Position? userPos;
 
   static const initialPos = CameraPosition(
-    target: LatLng(-12.05711777028543, -77.08399756046832),
-    zoom: 16,
+    target: LatLng(-12.0544, -77.0845),
+    zoom: 15.8,
     bearing: initialBearing,
   );
 
-  Vec2? dummyScreenButtonPos;
-
   LatLng? screenCenterLatLng;
   double mapRotation = 0;
+
   List<Marker> busStopsMarkers = [];
   List<Marker> entrancesMarkers = [];
 
+  BurritoInfoInTime? lastInfo;
+  bool loadingLastInfo = true;
+  Marker? burritoMarker;
+
   @override
   void initState() {
+    super.initState();
     backgroundPosUpdate();
     kUNMSMBusStopsMarkers.then((value) {
       setState(() {
@@ -55,7 +56,6 @@ class BurritoMapState extends State<BurritoMap> {
         entrancesMarkers = value;
       });
     });
-    super.initState();
   }
 
   void _onMapCreated(GoogleMapController controller) {
@@ -84,89 +84,132 @@ class BurritoMapState extends State<BurritoMap> {
 
   void backgroundPosUpdate() {
     Timer.periodic(const Duration(seconds: 1), (timer) async {
-      // print("🐢 Updating");
-
       try {
-        final tempUserPos = await determinePosition();
-        if (unmsmSafeBounds.contains(tempUserPos.latLng)) {
-          _controller.animateCamera(CameraUpdate.newLatLng(
-            LatLng(tempUserPos.latitude, tempUserPos.longitude),
-          ));
-        }
-        // setState(() {
-        //   userPos = tempUserPos;
-        // });
-      } catch (e) {
-        // TODO: Handle no permissions
+        final burritoInfo = await getInfoAcrossTime();
+        final burritoPosIcon = await kBurritoPosIcon;
+
+        setState(() {
+          lastInfo = burritoInfo.last;
+          loadingLastInfo = false;
+          burritoMarker = Marker(
+            markerId: const MarkerId('burrito'),
+            position: LatLng(
+              lastInfo!.pos.latitude,
+              lastInfo!.pos.longitude,
+            ),
+            icon: burritoPosIcon,
+          );
+        });
+      } catch (e, st) {
+        log('Error fetching burrito info', error: e, stackTrace: st);
       }
+
+      // try {
+      //   final tempUserPos = await determinePosition();
+      //   if (unmsmSafeBounds.contains(tempUserPos.latLng)) {
+      //     _controller.animateCamera(CameraUpdate.newLatLng(
+      //       LatLng(tempUserPos.latitude, tempUserPos.longitude),
+      //     ));
+      //   }
+      //   // setState(() {
+      //   //   userPos = tempUserPos;
+      //   // });
+      // } catch (e) {
+      // }
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final userOnBounds = screenCenterLatLng == null
+        ? true
+        : unmsmSafeBounds.contains(screenCenterLatLng!);
+
+    // final burritoExists = lastInfo != null && lastInfo!.status.locatable();
+    // final userLocated = userPos != null;
+
     return Scaffold(
-      body: Stack(
+      body: Column(
         children: [
-          GoogleMap(
-            mapType: MapType.normal,
-            initialCameraPosition: initialPos,
-            padding: const EdgeInsets.symmetric(vertical: 60),
-            minMaxZoomPreference: const MinMaxZoomPreference(14, 20),
-            compassEnabled: false,
-            trafficEnabled: false,
-            buildingsEnabled: false,
-            myLocationEnabled: true,
-            zoomControlsEnabled: false,
-            myLocationButtonEnabled: true,
-            mapToolbarEnabled: true,
-            style: mapStyleString,
-            polygons: {
-              kUNMSMPolygon,
-              ...kUNMSMPlacesPolygons.map(
-                (poly) => poly.copyWith(
-                  consumeTapEventsParam: true,
-                  onTapParam: () {
-                    print('Tapped on ${poly.polygonId}');
+          BurritoTopAppBar(lastInfo: lastInfo),
+          Expanded(
+            child: Stack(
+              children: [
+                GoogleMap(
+                  mapType: MapType.normal,
+                  initialCameraPosition: initialPos,
+                  padding: const EdgeInsets.only(top: 60),
+                  minMaxZoomPreference: const MinMaxZoomPreference(14, 20),
+                  compassEnabled: false,
+                  trafficEnabled: false,
+                  buildingsEnabled: false,
+                  myLocationEnabled: true,
+                  zoomControlsEnabled: false,
+                  myLocationButtonEnabled: true,
+                  mapToolbarEnabled: false,
+                  style: mapStyleString,
+                  polygons: {
+                    kUNMSMPolygon,
+                    ...kUNMSMPlacesPolygons.map(
+                      (poly) => poly.copyWith(
+                        consumeTapEventsParam: true,
+                        onTapParam: () {
+                          print('Tapped on ${poly.polygonId}');
+                        },
+                      ),
+                    )
                   },
+                  polylines: {kBurritoPathPolyLine},
+                  markers: {
+                    ...busStopsMarkers,
+                    ...entrancesMarkers.map((m) => m.copyWith(
+                        rotationParam: mapRotation + initialBearing)),
+                    if (burritoMarker != null) burritoMarker!,
+                  },
+                  // Events
+                  onMapCreated: _onMapCreated,
+                  onCameraMove: _onCameraMove,
                 ),
-              )
-            },
-            polylines: {kBurritoPathPolyLine},
-            markers: {
-              ...busStopsMarkers,
-              ...entrancesMarkers.map((m) =>
-                  m.copyWith(rotationParam: mapRotation + initialBearing)),
-              Marker(
-                visible: false,
-                markerId: const MarkerId('dummy_pos'),
-                position: initialPos.target,
-              ),
-            },
-            // Events
-            onMapCreated: _onMapCreated,
-            onCameraMove: _onCameraMove,
-          ),
-          if (screenCenterLatLng != null &&
-              !unmsmSafeBounds.contains(screenCenterLatLng!))
-            Positioned(
-                right: 10,
-                bottom: 10,
-                child: ElevatedButton(
-                  onPressed: () {
-                    // TODO: change this to the burrito when found
-                    _controller.animateCamera(
-                      CameraUpdate.newLatLng(initialPos.target),
-                    );
-                  },
-                  child: const Row(
-                    children: [
-                      Icon(Icons.arrow_back_rounded),
-                      Icon(Icons.directions_bus_rounded),
-                      SizedBox(width: 5),
-                      Text('Volver al burrito'),
-                    ],
+                if (!userOnBounds) ...[
+                  // Go back button
+                  Positioned(
+                    right: 10,
+                    bottom: kBottomBarHeight + 10,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.black87, width: 2),
+                      ),
+                      child: ClipOval(
+                        child: Material(
+                          color: Colors.white,
+                          child: InkWell(
+                            splashColor: Colors.grey,
+                            onTap: () {
+                              _controller.animateCamera(
+                                CameraUpdate.newLatLng(initialPos.target),
+                              );
+                            },
+                            child: const SizedBox(
+                              width: 56,
+                              height: 56,
+                              child:
+                                  Icon(Icons.keyboard_return_rounded, size: 32),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                )),
+                ],
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  child: BurritoBottomAppBar(lastInfo: lastInfo),
+                ),
+              ],
+            ),
+          )
         ],
       ),
     );

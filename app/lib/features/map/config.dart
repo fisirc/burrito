@@ -105,5 +105,27 @@ const mapStyleString = """
                 "visibility": "off"
             }
         ]
+    },
+    {
+        "featureType": "poi.school",
+        "elementType": "labels.text",
+        "stylers": [
+            {
+                "visibility": "off"
+            }
+        ]
     }
 ]""";
+
+/*
+Styles to consider:
+{
+    "featureType": "poi.business",
+    "elementType": "labels.icon",
+    "stylers": [
+        {
+            "visibility": "off"
+        }
+    ]
+}
+*/

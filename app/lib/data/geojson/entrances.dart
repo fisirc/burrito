@@ -1,5 +1,5 @@
-import 'package:flutter/widgets.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:burrito/data/markers/markers.dart';
 
 final List<Map<String, dynamic>> kUNMSMEntrancesGeoJSON = [
   {
@@ -73,10 +73,7 @@ final kUNMSMEntrances =
   final location = entrance['geometry']['coordinates'] as List<double>;
   final number = entrance['properties']['number'] as int;
 
-  final icon = await BitmapDescriptor.asset(
-    const ImageConfiguration(size: Size(26 * 2, 26)),
-    'assets/icons/entrance_p$number.png',
-  );
+  final icon = await entranceIcon(number);
 
   return Marker(
     markerId: MarkerId('entrance_p$number'),

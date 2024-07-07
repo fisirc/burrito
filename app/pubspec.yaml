@@ -38,6 +38,7 @@ dependencies:
   google_maps_flutter: ^2.7.0
   geolocator: ^12.0.0
   collection: ^1.18.0
+  dio: ^5.5.0+1
 
 dev_dependencies:
   flutter_test:
@@ -63,8 +64,8 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/icons/bus_burro.png
-    - assets/icons/bus_burro_marker.png
+    - assets/icons/burrito_marker.png
+    - assets/icons/busstop_marker.png
     - assets/icons/entrance_p1.png
     - assets/icons/entrance_p2.png
     - assets/icons/entrance_p3.png
@@ -73,7 +74,7 @@ flutter:
     - assets/icons/entrance_p6.png
     - assets/icons/entrance_p7.png
     - assets/icons/entrance_p8.png
-    # - assets/icons/entrance_p8.png
+    - assets/logos/unmsm_logo.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

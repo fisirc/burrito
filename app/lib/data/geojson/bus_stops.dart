@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:burrito/data/markers/markers.dart';
 import 'package:collection/collection.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -85,10 +85,7 @@ final kUNMSMBusStopsMarkers =
   final location = busstop['geometry']['coordinates'] as List<double>;
 
   if (bustStopIcon == null) {
-    final icon = await BitmapDescriptor.asset(
-      const ImageConfiguration(size: Size(17, 17 * (12 / 7))),
-      'assets/icons/bus_burro_marker.png',
-    );
+    final icon = await kBusStopIcon;
     bustStopIcon = icon;
   }
 
