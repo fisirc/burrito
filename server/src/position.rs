@@ -18,8 +18,44 @@ fn get_position(count: usize, state: &State<PositionState>) -> Result<Value, Sta
     if messages.is_empty() {
         return Err(Status::InternalServerError);
     }
-    
+
     let n = std::cmp::min(count, messages.len());
+
+    match messages.last() {
+        Some(last) => {
+            /*
+            status {
+                0: en ruta
+                1: fuera de servicio
+                2: en descanso
+                3: accidente
+                4: apagado
+            }
+            */
+            let is_off = last.sts == 1 || last.sts == 2 || last.sts == 3;
+
+            // If the burrito didn't report itself as 1,2 or 3 and it hasn't reported in the last 30 seconds,
+            // then we consider it as off
+            if !is_off && last.timestamp.unwrap().elapsed().unwrap() > std::time::Duration::from_secs(30) {
+                // We create an 'off' message on the fly
+                let off_message = Message {
+                    lt: 0.0,
+                    lg: 0.0,
+                    tmp: 0.0,
+                    hum: 0.0,
+                    sts: 4, // 4 means OFF
+                    timestamp: Some(SystemTime::now()),
+                    velocity: 0.0,
+                };
+                let mut messages_cpy = messages.clone();
+                messages_cpy.push(off_message);
+                return Ok(json!({
+                    "positions": messages_cpy.iter().rev().take(n).cloned().collect::<Vec<Message>>(),
+                }));
+            }
+        },
+        None => {},
+    }
 
     let recent_messages: Vec<Message> = messages.iter().rev().take(n).cloned().collect();
     Ok(json!({
