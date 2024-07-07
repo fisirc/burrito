@@ -22,19 +22,20 @@ void display_header(LiquidCrystal_I2C* lcd, const struct app_state* state, int r
   }
 }
 
-void display_burrito_pos(LiquidCrystal_I2C* lcd, float lat, float lng, int row) {
-  String s_lat = String(lat, 3);
-  String s_lng = String(lng, 3);
+void display_burrito_pos(LiquidCrystal_I2C* lcd, const struct app_state* state, int row) {
   lcd->setCursor(0, row);
   lcd->print(CHAR_BURRITO1 CHAR_BURRITO2 " ");
 
-  if (lat == INVALID_COORD || lng == INVALID_COORD) {
+  if (state->gps_error) {
     lcd->print("error!           ");
   }
-  else if (lat == LOADING_COORD || lng == LOADING_COORD) {
+  else if (state->gps_loading) {
     lcd->print("loading...       ");
   }
   else {
+    String s_lat = String(state->lat, 3);
+    String s_lng = String(state->lng, 3);
+
     lcd->print("(");
     lcd->print(s_lat);
     lcd->print(",");

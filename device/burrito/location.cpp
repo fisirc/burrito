@@ -4,7 +4,7 @@
 
 bool gps_delay(TinyGPSPlus* gps, unsigned long ms) {
   unsigned long start = millis();
-  do  {
+  do {
     while (GPS_SERIAL.available() > 0) {
       byte read = GPS_SERIAL.read();
       // This debugging branch prints the NMEA in the programming serial

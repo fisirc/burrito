@@ -5,7 +5,8 @@
 
 String var_wifi_ssid     = "the_hot_spot";
 String var_wifi_password = "delunoalnueve";
-String var_burrito_host  = "https://burrito-server.shuttleapp.rs";
+//String var_burrito_host  = "https://burrito-server.shuttleapp.rs";
+String var_burrito_host  = "http://143.198.141.62:6969";
 String var_burrito_post  = "/give-position/";
 
 LiquidCrystal_I2C lcd(I2C_ADDR, LCD_COLUMNS, LCD_LINES);
@@ -18,12 +19,16 @@ struct app_state state;
 
 void setup() {
   state = {
-    .lat = LOADING_COORD,
-    .lng = LOADING_COORD,
+    .lat = 0.0f,
+    .lng = 0.0f,
     .temp = INVALID_TEMPERATURE,
     .humidity = INVALID_HUMIDITY,
     .wifi_connected = false,
+    .gps_error = false,
+    .gps_loading = true,
+    .gps_error_tries = 0,
   };
+
   Serial.begin(115200);
   Serial.print("Burrito tracker started\n");
 
@@ -39,6 +44,8 @@ void setup() {
 
 /* 🚌 Burrito loop code */
 
+bool error_reported = false;
+
 void loop() {
   bool gps_ready = gps_delay(&gps, 1000);
   state.wifi_connected = wifi_is_connected();
@@ -52,20 +59,37 @@ void loop() {
     state.humidity = INVALID_HUMIDITY;
   }
 
-  if (gps_ready && gps.location.isValid()) {
+  bool has_gps_data = gps_ready && gps.location.isValid();
+
+  if (has_gps_data) {
     state.lat = gps.location.lat();
     state.lng = gps.location.lng();
-  }
-  else if (state.lat != LOADING_COORD) {
-    state.lat = INVALID_COORD;
-    state.lng = INVALID_COORD;
+    state.gps_error_tries = 0;
+    state.gps_error = false;
+    state.gps_loading = false;
+  } else if (!state.gps_loading) {
+    state.gps_error_tries++;
+    if (state.gps_error_tries > MAX_GPS_ERROR_TRIES) {
+      state.gps_error_tries = 0;
+      state.gps_error = true;
+    }
   }
 
   display_header(&lcd, &state);
-  display_burrito_pos(&lcd, state.lat, state.lng);
+  display_burrito_pos(&lcd, &state);
   display_weather(&lcd, state.temp, state.humidity);
+
   if (state.wifi_connected) {
-    send_data_to_server(&state, var_burrito_host + var_burrito_post);
+    if (state.gps_error && !error_reported) {
+      send_data_to_server(&state, var_burrito_host + var_burrito_post);
+      error_reported = true;
+    }
+    if (has_gps_data) {
+      send_data_to_server(&state, var_burrito_host + var_burrito_post);
+    }
   }
-  delay(LOOP_DELAY);
+
+  if (LOOP_DELAY > 0) {
+    delay(LOOP_DELAY);
+  }
 }

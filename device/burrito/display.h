@@ -18,10 +18,10 @@ void display_booting_up(LiquidCrystal_I2C* lcd, unsigned short step = 0);
 
 void display_header(LiquidCrystal_I2C* lcd, const struct app_state* state, int row = 0);
 
+
 void display_burrito_pos(
   LiquidCrystal_I2C* lcd,
-  float lat = INVALID_COORD,
-  float lng = INVALID_COORD,
+  const struct app_state* state,
   int row = 2
 );
 
