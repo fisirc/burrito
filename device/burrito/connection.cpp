@@ -37,12 +37,10 @@ bool send_data_to_server(const struct app_state* state, String endpoint) {
     String(",\"sts\":") + String(status) +
     "}";
 
-  Serial.print("[HTTP] POST payload: ");
+  Serial.print("\n[HTTP] POST payload: ");
   Serial.println(payload);
 
   int code = http.POST(payload);
-  String response = http.getString();
-  Serial.println(response);
 
   if (code < 0) {
     Serial.printf("[HTTP] POST error: %s\n", http.errorToString(code).c_str());
