@@ -1,6 +1,6 @@
 use std::{sync::LazyLock, time::SystemTime};
 
-use geo::{Contains, Polygon};
+use geo::{Centroid, Contains, GeodesicDistance, Polygon};
 use geojson::{FeatureCollection, GeoJson};
 use serde::{Deserialize, Serialize};
 
@@ -190,7 +190,7 @@ const BUS_STOPS_GEOJSON_STR: &str = r#"
         },
         {
             "type": "Feature",
-            "properties": {"num": 4, "name": "Paradero Comedor Universitario"},
+            "properties": {"num": 4, "name": "Paradero del Comedor"},
             "geometry": {
             "coordinates": [
                 [
@@ -253,25 +253,31 @@ pub struct BusStopInfo {
     pub number: i32,
     pub has_reached: bool,
     pub timestamp: SystemTime,
+    pub distance: f64,
 }
 
+fn feature_to_polygon(feature: &geojson::Feature) -> geo::Polygon {
+    match feature.geometry.as_ref().map(|g| &g.value) {
+        Some(geojson::Value::Polygon(p)) => {
+            let points = p.first().unwrap().iter().map(|pair| geo::Coord { x: pair[0], y: pair[1] }).collect::<Vec<_>>();
+            Polygon::new(geo::LineString::new(points), vec![])
+        },
+        _ => unreachable!(),
+    }
+}
 
 // Given a point, it returns the bus stop (paradero) located in that point, if some.
 pub fn get_bus_stop_for_point(lat: f64, lng: f64) -> Option<BusStopInfo> {
     BUS_STOPS.features.iter().find_map(|f| {
-        let points = match f.geometry.as_ref().map(|g| &g.value) {
-            Some(geojson::Value::Polygon(p)) => p.first(),
-            _ => unreachable!(),
-        }.unwrap().iter().map(|pair| geo::Coord { x: pair[0], y: pair[1] }).collect::<Vec<_>>();
-
-        let poly = Polygon::new(geo::LineString::new(points), vec![]);
+        let poly = feature_to_polygon(f);
 
         let name = f.properties.as_ref().unwrap().get("name").unwrap().as_str().unwrap().to_string();
         let number = f.properties.as_ref().unwrap().get("num").unwrap().as_i64().unwrap() as i32;
 
         if poly.contains(&geo::Point::new(lng, lat)) {
+            let distance = poly.centroid().unwrap().geodesic_distance(&geo::Point::new(lng, lat));
 
-            Some(BusStopInfo { name, number, has_reached: true, timestamp: SystemTime::now() })
+            Some(BusStopInfo { name, number, has_reached: true, timestamp: SystemTime::now(), distance })
 
         } else {
             None
@@ -279,9 +285,14 @@ pub fn get_bus_stop_for_point(lat: f64, lng: f64) -> Option<BusStopInfo> {
     })
 }
 
-pub fn get_next_bus_stop(current: i32) -> BusStopInfo {
-    let next = match current {
-        1..=8 => current + 1,
+pub struct LatLng {
+    pub lat: f64,
+    pub lng: f64,
+}
+
+pub fn get_next_bus_stop(current: &BusStopInfo, current_post: LatLng) -> BusStopInfo {
+    let next = match current.number {
+        1..=8 => current.number + 1,
         9 => 1,
         _ => unreachable!(),
     };
@@ -291,5 +302,18 @@ pub fn get_next_bus_stop(current: i32) -> BusStopInfo {
     }).unwrap();
     let name = next_stop.properties.as_ref().unwrap().get("name").unwrap().as_str().unwrap().to_string();
     let number = next_stop.properties.as_ref().unwrap().get("num").unwrap().as_i64().unwrap() as i32;
-    BusStopInfo { name, number, has_reached: false, timestamp: SystemTime::now() }
+
+    let poly = feature_to_polygon(next_stop);
+    let distance = poly.centroid().unwrap().geodesic_distance(&geo::Point::new(current_post.lng, current_post.lat));
+    BusStopInfo { name, number, has_reached: false, timestamp: SystemTime::now(), distance }
 }
+
+pub fn get_distance_to_bus_stop(current: &BusStopInfo, current_post: LatLng) -> f64 {
+    let poly = feature_to_polygon(BUS_STOPS.features.iter().find(|f| {
+        f.properties.as_ref().unwrap().get("num").unwrap().as_i64().unwrap() as i32 == current.number
+    }).unwrap());
+
+    let centroid = poly.centroid().unwrap();
+    centroid.geodesic_distance(&geo::Point::new(current_post.lng, current_post.lat))
+}
+

@@ -1,4 +1,5 @@
 use std::time::Duration;
+use geo::GeodesicDistance;
 use rocket::{http::Status, Route};
 use crate::Message;
 use rocket::State;
@@ -10,11 +11,12 @@ pub fn routes() -> Vec<Route> {
     routes![get_velocity]
 }
 
-pub fn calculate_velocity(positions: &[Message]) -> f64 {
+pub fn calculate_velocity_kmph(positions: &[Message]) -> f64 {
     if positions.len() < 2 {
         return 0.0;
     }
 
+    // meters
     let mut total_distance = 0.0;
     let mut total_time = Duration::new(0, 0);
 
@@ -30,7 +32,9 @@ pub fn calculate_velocity(positions: &[Message]) -> f64 {
         let lat2 = pos2.lt;
         let lon2 = pos2.lg;
 
-        let distance = haversine(lat1, lon1, lat2, lon2);
+        // meters
+        let distance = geo::Point::new(lat1, lon1).geodesic_distance(&geo::Point::new(lat2, lon2));
+
         total_distance += distance;
 
         let time_diff = pos2.timestamp.unwrap().duration_since(pos1.timestamp.unwrap()).unwrap_or(Duration::new(0, 0));
@@ -41,23 +45,9 @@ pub fn calculate_velocity(positions: &[Message]) -> f64 {
         return 0.0;
     }
 
-    // Convert total time to hours and calculate speed in km/h
-    let total_time_hours = total_time.as_secs_f64() / 3600.0;
-    total_distance / total_time_hours
-}
-
-fn haversine(lat1: f64, lon1: f64, lat2: f64, lon2: f64) -> f64 {
-    let rad = 6371.0; // Radius of the Earth in kilometers
-    let d_lat = (lat2 - lat1).to_radians();
-    let d_lon = (lon2 - lon1).to_radians();
-
-    let a = (d_lat / 2.0).sin().powi(2) +
-            lat1.to_radians().cos() * lat2.to_radians().cos() *
-            (d_lon / 2.0).sin().powi(2);
-
-    let c = 2.0 * a.sqrt().atan2((1.0 - a).sqrt());
-
-    rad * c // Distance in kilometers
+    // km/h
+    let velocity = total_distance / total_time.as_secs() as f64;
+    velocity * 3.6
 }
 
 #[get("/get-velocity")]
@@ -67,7 +57,7 @@ fn get_velocity(state: &State<BurritoState>) -> Result<Value, Status> {
         return Err(Status::InternalServerError);
     }
 
-    let velocity = calculate_velocity(&messages);
+    let velocity = calculate_velocity_kmph(&messages);
     Ok(json!({
         "velocity": velocity,
     }))
