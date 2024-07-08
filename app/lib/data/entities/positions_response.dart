@@ -1,53 +1,6 @@
+import 'package:burrito/data/entities/burrito_status.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:maps_toolkit/maps_toolkit.dart' as maps_toolkit show LatLng;
-
-enum BurritoStatus {
-  working,
-  outOfService,
-  atRest,
-  accident,
-  error,
-  loading,
-  unknown;
-
-  static BurritoStatus fromInt(int value) {
-    switch (value) {
-      case 0:
-        return working;
-      case 1:
-        return outOfService;
-      case 2:
-        return atRest;
-      case 3:
-        return accident;
-      case 4:
-        return error;
-      default:
-        return unknown;
-    }
-  }
-
-  String get displayName {
-    switch (this) {
-      case working:
-        return 'En ruta';
-      case outOfService:
-        return 'Fuera de servicio';
-      case atRest:
-        return 'En descanso';
-      case accident:
-        return 'Accidente';
-      case error:
-        return 'Error';
-      default:
-        return 'unknown';
-    }
-  }
-
-  bool locatable() {
-    return this == working;
-  }
-}
 
 class BurritoInfoInTime {
   final double humidity;
@@ -55,6 +8,7 @@ class BurritoInfoInTime {
   final BurritoStatus status;
   final DateTime timestamp;
   final double temperature;
+  final double velocity;
 
   BurritoInfoInTime({
     required this.humidity,
@@ -62,6 +16,7 @@ class BurritoInfoInTime {
     required this.status,
     required this.timestamp,
     required this.temperature,
+    required this.velocity,
   });
 
   factory BurritoInfoInTime.fromJson(Map<String, dynamic> json) {
@@ -74,6 +29,7 @@ class BurritoInfoInTime {
             json['timestamp']['nanos_since_epoch'] ~/ 1000000,
       ),
       temperature: json['tmp'],
+      velocity: json['velocity'],
     );
   }
 }
@@ -82,6 +38,7 @@ extension XBurritoInfo on double {
   // 2 digits precision
   String get tempString => '${toStringAsFixed(2)}°';
   String get humidityString => '${toStringAsFixed(2)}%';
+  String get kmphString => '${toStringAsFixed(2)} km/h';
 }
 
 extension XBurritoTimeInfo on DateTime {

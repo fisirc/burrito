@@ -1,29 +1,72 @@
+import 'dart:async';
 import 'package:burrito/data/entities/positions_response.dart';
+import 'package:burrito/services/dio_client.dart';
 import 'package:flutter/material.dart';
 
 const kBottomBarHeight = 50.0;
 
-class BurritoBottomAppBar extends StatelessWidget {
-  final BurritoInfoInTime? lastInfo;
+class BurritoBottomAppBar extends StatefulWidget {
+  final BurritoState? burritoState;
 
-  const BurritoBottomAppBar({super.key, this.lastInfo});
+  const BurritoBottomAppBar({super.key, this.burritoState});
+
+  @override
+  State<BurritoBottomAppBar> createState() => BurritoBottomAppBarState();
+}
+
+class BurritoBottomAppBarState extends State<BurritoBottomAppBar> {
+  Timer? _timer;
+  String timeAgoString = '?';
+
+  @override
+  void initState() {
+    backgroundTimerUpdate();
+    super.initState();
+  }
+
+  void backgroundTimerUpdate() async {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        if (widget.burritoState != null) {
+          timeAgoString = widget.burritoState!.lastInfo.timestamp.timeAgoString;
+        } else {
+          timeAgoString = '?';
+        }
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final burritoState = widget.burritoState;
+
     return SizedBox(
       height: kBottomBarHeight,
       width: MediaQuery.of(context).size.width,
       child: Container(
         padding: const EdgeInsets.only(right: 10, left: 8),
         color: Theme.of(context).colorScheme.primary,
-        // color: Colors.transparent,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            if (lastInfo != null) ...[
+            if (burritoState != null) ...[
               Row(
                 children: [
+                  Text(
+                    burritoState.lastInfo.velocity.kmphString,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
                   Row(
                     children: [
                       const Icon(
@@ -31,9 +74,9 @@ class BurritoBottomAppBar extends StatelessWidget {
                         color: Colors.white,
                         size: 17,
                       ),
-                      const SizedBox(width: 5),
+                      const SizedBox(width: 3),
                       Text(
-                        lastInfo!.temperature.tempString,
+                        burritoState.lastInfo.temperature.tempString,
                         style: const TextStyle(
                           fontSize: 14,
                           color: Colors.white,
@@ -51,9 +94,9 @@ class BurritoBottomAppBar extends StatelessWidget {
                         color: Colors.white,
                         size: 17,
                       ),
-                      const SizedBox(width: 5),
+                      const SizedBox(width: 3),
                       Text(
-                        lastInfo!.humidity.humidityString,
+                        burritoState.lastInfo.humidity.humidityString,
                         style: const TextStyle(
                           fontSize: 14,
                           color: Colors.white,
@@ -75,7 +118,7 @@ class BurritoBottomAppBar extends StatelessWidget {
                   ),
                   const SizedBox(width: 5),
                   Text(
-                    lastInfo!.timestamp.timeAgoString,
+                    timeAgoString,
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w400,

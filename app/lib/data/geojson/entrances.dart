@@ -1,5 +1,5 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:burrito/data/markers/markers.dart';
+import 'package:burrito/data/markers/bitmaps.dart';
 
 final List<Map<String, dynamic>> kUNMSMEntrancesGeoJSON = [
   {

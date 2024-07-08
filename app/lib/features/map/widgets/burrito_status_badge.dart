@@ -1,10 +1,10 @@
-import 'package:burrito/data/entities/positions_response.dart';
 import 'package:flutter/material.dart';
+import 'package:burrito/data/entities/burrito_status.dart';
 
 class BurritoStatusBadge extends StatelessWidget {
   final BurritoStatus status;
-  final badgeWidth = 40.0;
-  final badgeHeight = 16.0;
+  static const badgeWidth = 40.0;
+  static const badgeHeight = 16.0;
 
   const BurritoStatusBadge({super.key, required this.status});
 
@@ -40,6 +40,23 @@ class BurritoStatusBadge extends StatelessWidget {
               child: CircularProgressIndicator(
                 strokeWidth: 1,
                 valueColor: AlwaysStoppedAnimation(Colors.white),
+              ),
+            ),
+          ),
+        );
+      case BurritoStatus.off:
+        return Container(
+          // border rounded 8px
+          color: const Color.fromARGB(255, 128, 128, 128),
+          height: badgeHeight,
+          width: badgeWidth,
+          child: const Center(
+            child: Text(
+              'OFF',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 12,
               ),
             ),
           ),

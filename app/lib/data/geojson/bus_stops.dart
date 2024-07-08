@@ -1,4 +1,4 @@
-import 'package:burrito/data/markers/markers.dart';
+import 'package:burrito/data/markers/bitmaps.dart';
 import 'package:collection/collection.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:maps_toolkit/maps_toolkit.dart' as maps_toolkit show LatLng;
@@ -315,12 +315,14 @@ BitmapDescriptor? bustStopIcon;
 
 class BurritoStopTriggerArea {
   final List<maps_toolkit.LatLng> points;
+  final Polygon poly;
   final String name;
   final int stopNum;
 
   BurritoStopTriggerArea({
     required this.points,
     required this.name,
+    required this.poly,
     required this.stopNum,
   });
 }
@@ -333,6 +335,10 @@ final kBusStopsTriggerAreas = kBusStopsTriggersGeoJSON.mapIndexed((i, trigger) {
   return BurritoStopTriggerArea(
     stopNum: num,
     name: name,
+    poly: Polygon(
+      polygonId: PolygonId('trigger_$i'),
+      points: shape.map((p) => LatLng(p[1], p[0])).toList(),
+    ),
     points: shape.map((p) => maps_toolkit.LatLng(p[1], p[0])).toList(),
   );
 });
