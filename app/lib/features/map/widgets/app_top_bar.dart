@@ -117,7 +117,7 @@ class BurritoTopAppBarState extends State<BurritoTopAppBar>
                           ? burritoState!.lastStop!.name
                           : isOff
                               ? 'Fuera de servicio'
-                              : 'Intentando conectar...',
+                              : 'Esperando al burro...',
                       softWrap: false,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -164,7 +164,7 @@ class BurritoTopAppBarState extends State<BurritoTopAppBar>
                       )
                 : const Text(
                     textAlign: TextAlign.center,
-                    'El burro dejó de reportarse',
+                    'Aún no hay información disponible',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 13,
