@@ -72,6 +72,7 @@ void loop() {
     if (state.gps_error_tries > MAX_GPS_ERROR_TRIES) {
       state.gps_error_tries = 0;
       state.gps_error = true;
+      ESP.restart();
     }
   }
 
