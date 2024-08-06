@@ -33,8 +33,6 @@ fn longlaoshi_main_page() -> Template {
 pub struct Message {
     lt: f64,
     lg: f64,
-    tmp: f32,
-    hum: f32,
     sts: i32,
     #[serde(skip_deserializing)]
     timestamp: Option<SystemTime>,

@@ -40,8 +40,6 @@ fn get_position(count: usize, state: &State<BurritoState>) -> Result<Value, Stat
                 let off_message = Message {
                     lt: 0.0,
                     lg: 0.0,
-                    tmp: 0.0,
-                    hum: 0.0,
                     sts: 4, // 4 means OFF
                     timestamp: last.timestamp,
                     velocity: 0.0,
@@ -59,8 +57,6 @@ fn get_position(count: usize, state: &State<BurritoState>) -> Result<Value, Stat
                 "positions": vec![Message {
                     lt: 0.0,
                     lg: 0.0,
-                    tmp: 0.0,
-                    hum: 0.0,
                     sts: 4, // 4 means OFF
                     timestamp: Some(SystemTime::now()),
                     velocity: 0.0,
@@ -136,6 +132,7 @@ fn give_position(message_json: Json<Message>, state: &State<BurritoState>) -> St
     Status::Ok
 }
 
+// NO BORRAR POR FAVOR, SI NO, NO FUNCIONA (CORS'S THING)
 #[options("/give-position")]
 fn handle_options_request() -> Status {
     Status::NoContent
