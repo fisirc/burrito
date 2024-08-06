@@ -66,44 +66,6 @@ class BurritoBottomAppBarState extends State<BurritoBottomAppBar> {
                       fontSize: 14,
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.thermostat_rounded,
-                        color: Colors.white,
-                        size: 17,
-                      ),
-                      const SizedBox(width: 3),
-                      Text(
-                        burritoState.lastInfo.temperature.tempString,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w400,
-                          fontFamily: 'Roboto',
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(width: 10),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.opacity_rounded,
-                        color: Colors.white,
-                        size: 17,
-                      ),
-                      const SizedBox(width: 3),
-                      Text(
-                        burritoState.lastInfo.humidity.humidityString,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
                 ],
               ),
               Row(

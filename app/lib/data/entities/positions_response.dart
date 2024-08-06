@@ -3,32 +3,26 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:maps_toolkit/maps_toolkit.dart' as maps_toolkit show LatLng;
 
 class BurritoInfoInTime {
-  final double humidity;
   final LatLng pos;
   final BurritoStatus status;
   final DateTime timestamp;
-  final double temperature;
   final double velocity;
 
   BurritoInfoInTime({
-    required this.humidity,
     required this.pos,
     required this.status,
     required this.timestamp,
-    required this.temperature,
     required this.velocity,
   });
 
   factory BurritoInfoInTime.fromJson(Map<String, dynamic> json) {
     return BurritoInfoInTime(
-      humidity: json['hum'],
       pos: LatLng(json['lt'], json['lg']),
       status: BurritoStatus.fromInt(json['sts']),
       timestamp: DateTime.fromMillisecondsSinceEpoch(
         json['timestamp']['secs_since_epoch'] * 1000 +
             json['timestamp']['nanos_since_epoch'] ~/ 1000000,
       ),
-      temperature: json['tmp'],
       velocity: json['velocity'],
     );
   }
