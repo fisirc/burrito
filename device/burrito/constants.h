@@ -11,7 +11,7 @@ struct app_state {
   int   gps_error_tries;
 };
 
-#define APP_TITLE "Burrito!"
+#define APP_TITLE "Burrito tracker"
 #define INSTANCE_ID "burrito-001"
 
 #define LOOP_DELAY 500
