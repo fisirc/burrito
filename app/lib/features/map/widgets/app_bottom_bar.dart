@@ -59,11 +59,17 @@ class BurritoBottomAppBarState extends State<BurritoBottomAppBar> {
             if (burritoState != null) ...[
               Row(
                 children: [
+                  const Icon(
+                    Icons.speed_outlined,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 5),
                   Text(
                     burritoState.lastInfo.velocity.kmphString,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 14,
+                      fontSize: 15,
                     ),
                   ),
                 ],
@@ -75,7 +81,7 @@ class BurritoBottomAppBarState extends State<BurritoBottomAppBar> {
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w200,
-                      fontSize: 14,
+                      fontSize: 15,
                     ),
                   ),
                   const SizedBox(width: 5),
@@ -84,7 +90,7 @@ class BurritoBottomAppBarState extends State<BurritoBottomAppBar> {
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w400,
-                      fontSize: 14,
+                      fontSize: 15,
                     ),
                   ),
                 ],

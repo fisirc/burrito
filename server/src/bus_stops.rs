@@ -1,7 +1,8 @@
-use std::{sync::LazyLock, time::SystemTime};
+use std::time::SystemTime;
 
 use geo::{Centroid, Contains, GeodesicDistance, Polygon};
 use geojson::{FeatureCollection, GeoJson};
+use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 
 
@@ -242,10 +243,13 @@ const BUS_STOPS_GEOJSON_STR: &str = r#"
 "#;
 
 // global variable to store the parsed geojson (read only)
-static BUS_STOPS: LazyLock<FeatureCollection> = LazyLock::new(|| {
-    let geo_json = BUS_STOPS_GEOJSON_STR.parse::<GeoJson>().unwrap();
-    FeatureCollection::try_from(geo_json).unwrap()
-});
+
+lazy_static! {
+    static ref BUS_STOPS: FeatureCollection = {
+        let geo_json = BUS_STOPS_GEOJSON_STR.parse::<GeoJson>().unwrap();
+        FeatureCollection::try_from(geo_json).unwrap()
+    };
+}
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct BusStopInfo {

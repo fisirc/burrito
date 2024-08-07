@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print
 import 'package:burrito_driver_app/ending/final.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -6,11 +7,13 @@ import 'dart:convert';
 import 'dart:async';
 
 class BotonSolicitudes extends StatefulWidget {
+  const BotonSolicitudes({super.key});
+
   @override
-  _BotonSolicitudesState createState() => _BotonSolicitudesState();
+  BotonSolicitudesState createState() => BotonSolicitudesState();
 }
 
-class _BotonSolicitudesState extends State<BotonSolicitudes> {
+class BotonSolicitudesState extends State<BotonSolicitudes> {
   Timer? _timer;
   bool _isRunning = false;
   int _selectedStatus = 0;
@@ -23,7 +26,7 @@ class _BotonSolicitudesState extends State<BotonSolicitudes> {
 
   // Función para realizar las solicitudes periódicamente
   void _startRequests() {
-    _timer = Timer.periodic(const Duration(seconds: 2), (timer) async {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
       if (!_isRunning) {
         timer.cancel();
       } else {
@@ -54,9 +57,10 @@ class _BotonSolicitudesState extends State<BotonSolicitudes> {
     }
 
     if (position != null) {
-      // final urlPost = Uri.parse('http://143.198.141.62:6969/give-position');
-      final urlPost = Uri.parse(
-          'https://burrito-server.shuttleapp.rs/give-position'); // el mismo servidor levantado en shuttle
+      final urlPost = Uri.parse('http://elenadb.live:6969/give-position');
+      // final urlPost = Uri.parse(
+      //   'https://burrito-server.shuttleapp.rs/give-position',
+      // );
 
       try {
         // Datos para enviar en la solicitud POST
@@ -76,12 +80,23 @@ class _BotonSolicitudesState extends State<BotonSolicitudes> {
         );
 
         if (response.statusCode == 200 || response.statusCode == 201) {
-          final responseData = jsonDecode(response.body);
-          print('POST request data: $responseData');
+          // final responseData = jsonDecode(response.body);
+          // print('POST request data: $responseData');
 
           setState(() {
             // _mensaje = '¡Solicitud POST exitosa!';
           });
+          // show snackbar of success
+          if (context.mounted) {
+            // ignore: use_build_context_synchronously
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Solicitud enviada correctamente'),
+                backgroundColor: Colors.green,
+                duration: Duration(milliseconds: 500),
+              ),
+            );
+          }
         } else {
           print('Error en POST request: ${response.statusCode}');
           setState(() {
@@ -93,6 +108,16 @@ class _BotonSolicitudesState extends State<BotonSolicitudes> {
         setState(() {
           // _mensaje = 'Ocurrió un error';
         });
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error en la solicitud: $e'),
+              backgroundColor: Colors.red,
+              duration: const Duration(milliseconds: 500),
+            ),
+          );
+        }
       }
     } else {
       setState(() {
@@ -151,7 +176,7 @@ class _BotonSolicitudesState extends State<BotonSolicitudes> {
               ],
             ),
             Center(
-              child: Container(
+              child: SizedBox(
                 width: 350,
                 height: 60,
                 child: ElevatedButton(

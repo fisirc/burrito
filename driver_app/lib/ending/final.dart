@@ -4,13 +4,17 @@ class StatusButton extends StatefulWidget {
   final VoidCallback onStop;
   final int currentStatus;
 
-  StatusButton({required this.onStop, required this.currentStatus});
+  const StatusButton({
+    super.key,
+    required this.onStop,
+    required this.currentStatus,
+  });
 
   @override
-  _StatusButtonState createState() => _StatusButtonState();
+  StatusButtonState createState() => StatusButtonState();
 }
 
-class _StatusButtonState extends State<StatusButton> {
+class StatusButtonState extends State<StatusButton> {
   late int _selectedStatus;
 
   // Mapa de estados con sus descripciones
@@ -50,7 +54,7 @@ class _StatusButtonState extends State<StatusButton> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  Container(
+                  SizedBox(
                     width: 260,
                     height: 60,
                     child: ElevatedButton(
@@ -114,7 +118,7 @@ class _StatusButtonState extends State<StatusButton> {
                       ),
                     ),
                   ),
-                  Container(
+                  SizedBox(
                     width: 70,
                     height: 60,
                     child: ElevatedButton(
