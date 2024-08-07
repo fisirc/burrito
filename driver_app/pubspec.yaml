@@ -1,0 +1,39 @@
+name: burrito_driver_app
+description: "A flutter application to send the location of a university public transportation in real time."
+
+publish_to: 'none' 
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.4.3 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^0.13.3
+  geolocator: ^7.6.2
+
+  cupertino_icons: ^1.0.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  
+  flutter_launcher_icons: "^0.10.0"
+
+  flutter_lints: ^3.0.0
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/img/paradero.png"
+
+flutter:
+  assets:
+    - assets/img/
+  fonts:
+    - family: Koulen
+      fonts:
+        - asset: assets/fonts/Koulen.zip
+  uses-material-design: true
